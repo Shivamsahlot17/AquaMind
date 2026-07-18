@@ -21,66 +21,50 @@ export const createReading = async (
   req: Request,
   res: Response
 ) => {
-
   try {
-
     const {
       stationCode,
       depth,
       temperature,
       ph,
-      tds
+      tds,
     } = req.body;
 
     const station = await prisma.station.findUnique({
       where: {
-        code: stationCode
-      }
+        code: stationCode,
+      },
     });
 
     if (!station) {
-
       return res.status(404).json({
-        message: "Station not found"
+        message: "Station not found",
       });
-
     }
 
     const quality = calculateWaterQuality(ph, tds);
 
     const reading = await prisma.groundwaterReading.create({
-
       data: {
-
         stationId: station.id,
-
         depth,
-
         temperature,
-
         ph,
-
         tds,
-
-        waterQuality: quality
-
-      }
-
+        waterQuality: quality,
+      },
     });
 
     res.status(201).json(reading);
-
   } catch (error) {
-
-    console.log(error);
+    console.error(error);
 
     res.status(500).json({
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
-
   }
-
 };
+
 export const getLatestReading = async (
   req: Request,
   res: Response
@@ -97,8 +81,35 @@ export const getLatestReading = async (
 
     res.json(reading);
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
       message: "Failed to fetch latest reading",
+    });
+  }
+};
+
+export const getRecentReadings = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const readings = await prisma.groundwaterReading.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 20,
+      include: {
+        station: true,
+      },
+    });
+
+    res.json(readings.reverse());
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to fetch readings",
     });
   }
 };
