@@ -7,11 +7,8 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import type { Reading } from "../types/reading";
 
-type Reading = {
-  createdAt: string;
-  depth: number;
-};
 
 type Props = {
   data: Reading[];

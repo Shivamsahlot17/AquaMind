@@ -5,13 +5,18 @@ import api from "../services/api";
 import Navbar from "../components/Navbar";
 import RecentReadingsTable from "../components/RecentReadingsTable";
 import AlertPanel from "../components/AlertPanel";
+import type { Reading } from "../types/reading";
 
-
+import {
+  getLatestReading,
+  getReadingHistory,
+} from "../services/readingService";
 
 
 function Dashboard() {
-  const [reading, setReading] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [reading, setReading] = useState<Reading | null>(null);
+  const [history, setHistory] = useState<Reading[]>([]);
+  
 
   useEffect(() => {
     fetchData();
@@ -22,18 +27,18 @@ function Dashboard() {
   }, []);
 
   async function fetchData() {
-    try {
-      const [latest, history] = await Promise.all([
-        api.get("/readings/latest"),
-        api.get("/readings/history"),
-      ]);
+  try {
+    const [latest, history] = await Promise.all([
+      getLatestReading(),
+      getReadingHistory(),
+    ]);
 
-      setReading(latest.data);
-      setHistory(history.data);
-    } catch (error) {
-      console.error(error);
-    }
+    setReading(latest);
+    setHistory(history);
+  } catch (error) {
+    console.error(error);
   }
+}
 
   if (!reading) {
     return <h2>Loading...</h2>;

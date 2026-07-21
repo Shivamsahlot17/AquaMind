@@ -1,3 +1,5 @@
+
+
 type Reading = {
   createdAt: string;
   depth: number;
@@ -6,7 +8,7 @@ type Reading = {
   tds: number;
   waterQuality: string;
 };
-
+import type { Reading } from "../types/reading";
 type Props = {
   data: Reading[];
 };
