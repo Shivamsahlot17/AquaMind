@@ -1,14 +1,5 @@
-
-
-type Reading = {
-  createdAt: string;
-  depth: number;
-  temperature: number;
-  ph: number;
-  tds: number;
-  waterQuality: string;
-};
 import type { Reading } from "../types/reading";
+
 type Props = {
   data: Reading[];
 };
@@ -22,6 +13,7 @@ function RecentReadingsTable({ data }: Props) {
         padding: 20,
         borderRadius: 12,
         boxShadow: "0 2px 8px rgba(0,0,0,.15)",
+        overflowX: "auto",
       }}
     >
       <h2>Recent Readings</h2>
@@ -33,37 +25,59 @@ function RecentReadingsTable({ data }: Props) {
         }}
       >
         <thead>
-          <tr>
-            <th>Time</th>
-            <th>Depth</th>
-            <th>Temperature</th>
-            <th>pH</th>
-            <th>TDS</th>
-            <th>Quality</th>
+          <tr
+            style={{
+              background: "#0f4c81",
+              color: "white",
+            }}
+          >
+            <th style={{ padding: 10 }}>Time</th>
+            <th style={{ padding: 10 }}>Depth (m)</th>
+            <th style={{ padding: 10 }}>Temp (°C)</th>
+            <th style={{ padding: 10 }}>pH</th>
+            <th style={{ padding: 10 }}>TDS (ppm)</th>
+            <th style={{ padding: 10 }}>Quality</th>
           </tr>
         </thead>
 
         <tbody>
-          {data
-            .slice()
-            .reverse()
-            .map((reading, index) => (
-              <tr key={index}>
-                <td>
-                  {new Date(reading.createdAt).toLocaleTimeString()}
-                </td>
+          {[...data].reverse().map((reading, index) => (
+            <tr
+              key={index}
+              style={{
+                textAlign: "center",
+                borderBottom: "1px solid #e5e7eb",
+              }}
+            >
+              <td style={{ padding: 10 }}>
+                {new Date(reading.createdAt).toLocaleString()}
+              </td>
 
-                <td>{reading.depth} m</td>
+              <td>{reading.depth}</td>
 
-                <td>{reading.temperature} °C</td>
+              <td>{reading.temperature}</td>
 
-                <td>{reading.ph}</td>
+              <td>{reading.ph}</td>
 
-                <td>{reading.tds} ppm</td>
+              <td>{reading.tds}</td>
 
-                <td>{reading.waterQuality}</td>
-              </tr>
-            ))}
+              <td>
+                <span
+                  style={{
+                    color:
+                      reading.waterQuality === "GOOD"
+                        ? "green"
+                        : reading.waterQuality === "MODERATE"
+                        ? "#f59e0b"
+                        : "red",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {reading.waterQuality}
+                </span>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

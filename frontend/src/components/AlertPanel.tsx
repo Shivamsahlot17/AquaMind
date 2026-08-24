@@ -11,22 +11,41 @@ function AlertPanel({
   tds,
   quality,
 }: Props) {
-  const alerts: string[] = [];
+  const alerts: { message: string; color: string }[] = [];
+
+  if (depth > 20) {
+    alerts.push({
+      message: "Groundwater level is critically low.",
+      color: "#ef4444",
+    });
+  }
 
   if (ph < 6.5 || ph > 8.5) {
-    alerts.push("🔴 pH is outside the safe range.");
+    alerts.push({
+      message: "pH is outside the safe range.",
+      color: "#f59e0b",
+    });
   }
 
   if (tds > 500) {
-    alerts.push("🟡 TDS is above the recommended limit.");
+    alerts.push({
+      message: "TDS exceeds the recommended limit.",
+      color: "#f97316",
+    });
   }
 
-  if (depth > 20) {
-    alerts.push("🔵 Groundwater level is getting low.");
+  if (quality !== "GOOD") {
+    alerts.push({
+      message: `Water quality is ${quality}.`,
+      color: "#dc2626",
+    });
   }
 
   if (alerts.length === 0) {
-    alerts.push(`🟢 Water Quality is ${quality}.`);
+    alerts.push({
+      message: "All groundwater parameters are within the safe range.",
+      color: "#16a34a",
+    });
   }
 
   return (
@@ -42,7 +61,19 @@ function AlertPanel({
       <h2>🚨 Alerts</h2>
 
       {alerts.map((alert, index) => (
-        <p key={index}>{alert}</p>
+        <div
+          key={index}
+          style={{
+            marginTop: 10,
+            padding: 12,
+            borderLeft: `6px solid ${alert.color}`,
+            background: "#f8fafc",
+            borderRadius: 8,
+            fontWeight: 600,
+          }}
+        >
+          {alert.message}
+        </div>
       ))}
     </div>
   );

@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
 import prisma from "../services/prisma";
+import {
+  AlertSeverity,
+  SensorStatus,
+} from "@prisma/client";
 
 function calculateWaterQuality(ph: number, tds: number) {
   if (ph >= 6.5 && ph <= 8.5 && tds <= 300)
@@ -16,6 +20,59 @@ function calculateWaterQuality(ph: number, tds: number) {
 
   return "UNSAFE";
 }
+// console.log({ stationId, depth, ph, tds });
+async function createAlerts(
+  stationId: string,
+  depth: number,
+  ph: number,
+  tds: number
+) {
+  console.log("createAlerts called");
+  console.log({ stationId, depth, ph, tds });
+
+  const alerts = [];
+
+  if (depth > 50) {
+    alerts.push({
+      title: "Critical Groundwater Depth",
+      message: `Groundwater depth is ${depth} m.`,
+      severity: AlertSeverity.HIGH,
+    });
+  }
+
+  if (ph < 6.5 || ph > 8.5) {
+    alerts.push({
+      title: "Unsafe pH Level",
+      message: `Current pH is ${ph}.`,
+      severity: AlertSeverity.MEDIUM,
+    });
+  }
+
+  if (tds > 500) {
+    alerts.push({
+      title: "High TDS",
+      message: `TDS reached ${tds} ppm.`,
+      severity: tds > 1200
+        ? AlertSeverity.HIGH
+        : AlertSeverity.MEDIUM,
+    });
+  }
+
+  console.log("Generated Alerts:", alerts);
+
+  if (alerts.length > 0) {
+    await prisma.groundwaterAlert.createMany({
+      data: alerts.map((alert) => ({
+        ...alert,
+        stationId,
+      })),
+    });
+
+    console.log("Alerts inserted into database");
+  } else {
+    console.log("No alerts generated");
+  }
+}
 
 export const createReading = async (
   req: Request,
@@ -29,6 +86,7 @@ export const createReading = async (
       ph,
       tds,
     } = req.body;
+    
 
     const station = await prisma.station.findUnique({
       where: {
@@ -41,6 +99,16 @@ export const createReading = async (
         message: "Station not found",
       });
     }
+    const deviceId = req.headers["x-device-id"] as string;
+    await prisma.sensor.update({
+      where: {
+        deviceId,
+      },
+      data: {
+        status: SensorStatus.ONLINE,
+        lastSeen: new Date(),
+      },
+    });
 
     const quality = calculateWaterQuality(ph, tds);
 
@@ -54,6 +122,13 @@ export const createReading = async (
         waterQuality: quality,
       },
     });
+
+    await createAlerts(
+      station.id,
+      depth,
+      ph,
+      tds
+    );
 
     res.status(201).json(reading);
   } catch (error) {
@@ -110,6 +185,35 @@ export const getRecentReadings = async (
 
     res.status(500).json({
       message: "Failed to fetch readings",
+    });
+  }
+};
+export const getAlerts = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const alerts = await prisma.groundwaterAlert.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 20,
+      include: {
+        station: {
+          select: {
+            code: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.json(alerts);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to fetch alerts",
     });
   }
 };

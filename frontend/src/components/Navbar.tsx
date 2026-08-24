@@ -1,35 +1,43 @@
+import "../styles/navbar.css";
+
 function Navbar() {
+  const currentTime = new Date().toLocaleString();
+
   return (
-    <nav
-      style={{
-        background: "#0f4c81",
-        color: "white",
-        padding: "18px 40px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        boxShadow: "0 2px 8px rgba(0,0,0,.2)",
-      }}
-    >
-      <h2 style={{ margin: 0 }}>
-        🌊 AquaMind
-      </h2>
-
-      <h3 style={{ margin: 0 }}>
-        Groundwater Monitoring Dashboard
-      </h3>
-
+    <nav className="navbar">
       <div>
-        <span
+        <h2 className="navbar-logo">🌊 AquaMind</h2>
+        <p
           style={{
-            background: "#2e7d32",
-            padding: "8px 14px",
-            borderRadius: "20px",
-            fontWeight: "bold",
+            margin: 0,
+            color: "#dbeafe",
+            fontSize: "13px",
           }}
         >
-          🟢 ONLINE
-        </span>
+          Smart Groundwater Monitoring System
+        </p>
+      </div>
+
+      <h3 className="navbar-title">
+        Real-Time Groundwater Monitoring Dashboard
+      </h3>
+
+      <div
+        style={{
+          textAlign: "right",
+        }}
+      >
+        <div className="navbar-status">🟢 ONLINE</div>
+
+        <div
+          style={{
+            fontSize: "13px",
+            color: "#dbeafe",
+            marginTop: 6,
+          }}
+        >
+          {currentTime}
+        </div>
       </div>
     </nav>
   );

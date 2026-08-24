@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
+import { SensorStatus } from "@prisma/client";
 import { AlertSeverity } from "@prisma/client";
 
 function calculateWaterQuality(ph: number, tds: number) {

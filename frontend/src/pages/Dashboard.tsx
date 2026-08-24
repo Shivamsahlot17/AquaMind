@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import Layout from "../layout/Layout";
 import MetricCard from "../components/MetricCard";
 import DepthChart from "../components/DepthChart";
-import api from "../services/api";
-import Navbar from "../components/Navbar";
 import RecentReadingsTable from "../components/RecentReadingsTable";
 import AlertPanel from "../components/AlertPanel";
+
 import type { Reading } from "../types/reading";
 
 import {
@@ -12,73 +14,121 @@ import {
   getReadingHistory,
 } from "../services/readingService";
 
-
 function Dashboard() {
+  const { stationId } = useParams();
+
   const [reading, setReading] = useState<Reading | null>(null);
   const [history, setHistory] = useState<Reading[]>([]);
-  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!stationId) return;
+
     fetchData();
 
     const interval = setInterval(fetchData, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [stationId]);
 
   async function fetchData() {
-  try {
-    const [latest, history] = await Promise.all([
-      getLatestReading(),
-      getReadingHistory(),
-    ]);
+    try {
+      setError("");
 
-    setReading(latest);
-    setHistory(history);
-  } catch (error) {
-    console.error(error);
-  }
-}
+      const [latest, history] = await Promise.all([
+    getLatestReading(),
+    getReadingHistory(),
+      ]);
 
-  if (!reading) {
-    return <h2>Loading...</h2>;
+      setReading(latest);
+      setHistory(history);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load station data.");
+    } finally {
+      setLoading(false);
+    }
   }
+
+  if (loading) {
+    return (
+      <Layout>
+        <div
+          style={{
+            height: "70vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: 24,
+            fontWeight: "bold",
+            color: "#0f4c81",
+          }}
+        >
+          Loading Dashboard...
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div
+          style={{
+            height: "70vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            color: "red",
+            fontSize: 22,
+            fontWeight: "bold",
+          }}
+        >
+          {error}
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!reading) return null;
 
   return (
-    <> 
-    <Navbar />
-    
-    <div
-      style={{
-        background: "#eef5f9",
-        minHeight: "100vh",
-        padding: 40,
-        fontFamily: "Arial",
-      }}
-    >
-      {/* <h1
-        style={{
-          textAlign: "center",
-          color: "#0f4c81",
-        }}
-      >
-        AquaMind Dashboard
-      </h1> */}
-
+    <Layout>
       <div
         style={{
-          width: 900,
-          margin: "40px auto",
+          maxWidth: "1100px",
+          margin: "0 auto",
         }}
       >
-        <h2>{reading.station.name}</h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <h2>{reading.station.name}</h2>
+
+            <p
+              style={{
+                color: "#666",
+                marginTop: 6,
+              }}
+            >
+              Station Code: <strong>{stationId}</strong>
+            </p>
+          </div>
+        </div>
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
             gap: 20,
-            marginTop: 20,
           }}
         >
           <MetricCard
@@ -93,12 +143,32 @@ function Dashboard() {
 
           <MetricCard
             title="🧪 pH"
-            value={`${reading.ph}`}
+            value={reading.ph.toFixed(2)}
           />
 
           <MetricCard
             title="💧 TDS"
             value={`${reading.tds} ppm`}
+          />
+
+          <MetricCard
+            title="💎 Water Quality"
+            value={reading.waterQuality}
+          />
+
+          <MetricCard
+            title="📈 Total Readings"
+            value={history.length.toString()}
+          />
+
+          <MetricCard
+            title="📅 Last Updated"
+            value={new Date(reading.createdAt).toLocaleTimeString()}
+          />
+
+          <MetricCard
+            title="🛰 Station Status"
+            value={reading.station.status}
           />
         </div>
 
@@ -114,19 +184,20 @@ function Dashboard() {
           <h2>
             Water Quality: {reading.waterQuality}
           </h2>
-            <AlertPanel
+
+          <AlertPanel
             depth={reading.depth}
             ph={reading.ph}
             tds={reading.tds}
             quality={reading.waterQuality}
-            />
+          />
         </div>
 
         <DepthChart data={history} />
+
         <RecentReadingsTable data={history} />
       </div>
-    </div>
-    </>
+    </Layout>
   );
 }
 

@@ -1,0 +1,11 @@
+{
+  "name": "aquamind-sensor-simulator",
+  "version": "1.0.0",
+  "main": "simulator.js",
+  "scripts": {
+    "start": "node simulator.js"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}

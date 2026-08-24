@@ -1,47 +1,29 @@
 import { Router } from "express";
 
 import {
-  getStations,
-  getStationByCode,
-  createStation,
-  updateStation,
-} from "../controllers/station.controller";
+  registerSensor,
+  getSensors,
+} from "../controllers/sensor.controller";
 
 import { authenticate } from "../middleware/auth.middleware";
 import { authorize } from "../middleware/role.middleware";
 
 const router = Router();
 
-// View all stations
-router.get(
-  "/",
-  authenticate,
-  authorize("ADMIN", "ENGINEER", "VIEWER"),
-  getStations
-);
-
-// View one station
-router.get(
-  "/:code",
-  authenticate,
-  authorize("ADMIN", "ENGINEER", "VIEWER"),
-  getStationByCode
-);
-
-// Create station
+// Only ADMIN can register sensors
 router.post(
-  "/",
+  "/register",
   authenticate,
   authorize("ADMIN"),
-  createStation
+  registerSensor
 );
 
-// Update station
-router.patch(
-  "/:id",
+// ADMIN, ENGINEER and VIEWER can view sensors
+router.get(
+  "/",
   authenticate,
-  authorize("ADMIN"),
-  updateStation
+  authorize("ADMIN", "ENGINEER", "VIEWER"),
+  getSensors
 );
 
 export default router;
