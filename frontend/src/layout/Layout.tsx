@@ -72,6 +72,13 @@ function Layout({ children }: Props) {
             >
               ⚙️ Settings
             </Link>
+
+            <Link
+              to="/users"
+              style={getLinkStyle(location.pathname === "/users")}
+            >
+              👥 Users
+            </Link>
           </div>
         </aside>
 

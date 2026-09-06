@@ -11,6 +11,7 @@ import Stations from "./pages/Stations";
 import Alerts from "./pages/Alerts";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Users from "./pages/Users";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -74,6 +75,16 @@ function App() {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Users */}
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Users />
             </ProtectedRoute>
           }
         />
