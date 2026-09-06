@@ -1,7 +1,6 @@
 const axios = require("axios");
 
-const API_URL = "http://localhost:3000/api/readings";
-
+const API_URL = "https://aquamind-ts49.onrender.com/api/readings";
 const stationCode = "GW001";
 
 const deviceId = "AQM-0001";
