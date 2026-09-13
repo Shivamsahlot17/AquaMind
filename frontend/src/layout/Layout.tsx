@@ -9,6 +9,20 @@ type Props = {
 function Layout({ children }: Props) {
   const location = useLocation();
 
+  const userData = localStorage.getItem("user");
+  let userRole = "";
+
+  try {
+    if (userData) {
+      const user = JSON.parse(userData);
+      userRole = user.role;
+    }
+  } catch {
+    userRole = "";
+  }
+
+  const isAdmin = userRole === "ADMIN";
+
   return (
     <>
       <Navbar />
@@ -92,14 +106,16 @@ function Layout({ children }: Props) {
               ⚙️ Settings
             </Link>
 
-            <Link
-              to="/users"
-              style={getLinkStyle(
-                location.pathname === "/users"
-              )}
-            >
-              👥 Users
-            </Link>
+            {isAdmin && (
+              <Link
+                to="/users"
+                style={getLinkStyle(
+                  location.pathname === "/users"
+                )}
+              >
+                👥 Users
+              </Link>
+            )}
           </div>
         </aside>
 

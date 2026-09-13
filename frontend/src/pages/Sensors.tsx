@@ -28,6 +28,19 @@ function Sensors() {
 
   const [generatedKey, setGeneratedKey] = useState("");
 
+  const userData = localStorage.getItem("user");
+
+  let isAdmin = false;
+
+  try {
+    if (userData) {
+      const user = JSON.parse(userData);
+      isAdmin = user.role === "ADMIN";
+    }
+  } catch {
+    isAdmin = false;
+  }
+
   useEffect(() => {
     loadData();
   }, []);
@@ -177,17 +190,19 @@ function Sensors() {
             🔄 Refresh
           </button>
 
-          <button
-            onClick={() => {
-              setShowRegisterForm(!showRegisterForm);
-              setGeneratedKey("");
-            }}
-            style={primaryButtonStyle}
-          >
-            {showRegisterForm
-              ? "✕ Close"
-              : "➕ Register Sensor"}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setShowRegisterForm(!showRegisterForm);
+                setGeneratedKey("");
+              }}
+              style={primaryButtonStyle}
+            >
+              {showRegisterForm
+                ? "✕ Close"
+                : "➕ Register Sensor"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -205,7 +220,7 @@ function Sensors() {
         </div>
       )}
 
-      {showRegisterForm && (
+      {isAdmin && showRegisterForm && (
         <div
           style={{
             background: "white",
@@ -409,50 +424,52 @@ function Sensors() {
                 {formatLastSeen(sensor.lastSeen)}
               </p>
 
-              <div
-                style={{
-                  marginTop: "20px",
-                  display: "flex",
-                  gap: "10px",
-                }}
-              >
-                <select
-                  value={sensor.status}
-                  onChange={(event) =>
-                    handleStatusChange(
-                      sensor.id,
-                      event.target.value as Sensor["status"]
-                    )
-                  }
+              {isAdmin && (
+                <div
                   style={{
-                    flex: 1,
-                    padding: "8px",
-                    borderRadius: "6px",
-                    border: "1px solid #ccc",
+                    marginTop: "20px",
+                    display: "flex",
+                    gap: "10px",
                   }}
                 >
-                  <option value="ONLINE">ONLINE</option>
-                  <option value="OFFLINE">OFFLINE</option>
-                  <option value="MAINTENANCE">
-                    MAINTENANCE
-                  </option>
-                </select>
+                  <select
+                    value={sensor.status}
+                    onChange={(event) =>
+                      handleStatusChange(
+                        sensor.id,
+                        event.target.value as Sensor["status"]
+                      )
+                    }
+                    style={{
+                      flex: 1,
+                      padding: "8px",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                    }}
+                  >
+                    <option value="ONLINE">ONLINE</option>
+                    <option value="OFFLINE">OFFLINE</option>
+                    <option value="MAINTENANCE">
+                      MAINTENANCE
+                    </option>
+                  </select>
 
-                <button
-                  onClick={() => handleDelete(sensor.id)}
-                  style={{
-                    padding: "8px 12px",
-                    border: "none",
-                    borderRadius: "6px",
-                    background: "#c62828",
-                    color: "white",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
+                  <button
+                    onClick={() => handleDelete(sensor.id)}
+                    style={{
+                      padding: "8px 12px",
+                      border: "none",
+                      borderRadius: "6px",
+                      background: "#c62828",
+                      color: "white",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

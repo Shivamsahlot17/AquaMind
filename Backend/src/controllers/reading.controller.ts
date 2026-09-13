@@ -20,16 +20,13 @@ function calculateWaterQuality(ph: number, tds: number) {
 
   return "UNSAFE";
 }
-// console.log({ stationId, depth, ph, tds });
+
 async function createAlerts(
   stationId: string,
   depth: number,
   ph: number,
   tds: number
 ) {
-  console.log("createAlerts called");
-  console.log({ stationId, depth, ph, tds });
-
   const alerts = [];
 
   if (depth > 50) {
@@ -52,13 +49,12 @@ async function createAlerts(
     alerts.push({
       title: "High TDS",
       message: `TDS reached ${tds} ppm.`,
-      severity: tds > 1200
-        ? AlertSeverity.HIGH
-        : AlertSeverity.MEDIUM,
+      severity:
+        tds > 1200
+          ? AlertSeverity.HIGH
+          : AlertSeverity.MEDIUM,
     });
   }
-
-  console.log("Generated Alerts:", alerts);
 
   if (alerts.length > 0) {
     await prisma.groundwaterAlert.createMany({
@@ -67,10 +63,6 @@ async function createAlerts(
         stationId,
       })),
     });
-
-    console.log("Alerts inserted into database");
-  } else {
-    console.log("No alerts generated");
   }
 }
 
@@ -86,23 +78,63 @@ export const createReading = async (
       ph,
       tds,
     } = req.body;
-    
 
-    const station = await prisma.station.findUnique({
+    const deviceId = req.headers["x-device-id"] as string;
+    const deviceKey = req.headers["x-device-key"] as string;
+
+    if (!deviceId || !deviceKey) {
+      return res.status(401).json({
+        success: false,
+        message: "Device credentials are required.",
+      });
+    }
+
+    if (
+      depth === undefined ||
+      temperature === undefined ||
+      ph === undefined ||
+      tds === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All sensor readings are required.",
+      });
+    }
+
+    const sensor = await prisma.sensor.findFirst({
       where: {
-        code: stationCode,
+        deviceId,
+        deviceKey,
+      },
+      include: {
+        station: true,
       },
     });
 
-    if (!station) {
-      return res.status(404).json({
-        message: "Station not found",
+    if (!sensor) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid sensor credentials.",
       });
     }
-    const deviceId = req.headers["x-device-id"] as string;
+
+    if (!sensor.station) {
+      return res.status(400).json({
+        success: false,
+        message: "Sensor is not linked to a station.",
+      });
+    }
+
+    if (sensor.station.code !== stationCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Sensor is not assigned to this station.",
+      });
+    }
+
     await prisma.sensor.update({
       where: {
-        deviceId,
+        id: sensor.id,
       },
       data: {
         status: SensorStatus.ONLINE,
@@ -114,7 +146,7 @@ export const createReading = async (
 
     const reading = await prisma.groundwaterReading.create({
       data: {
-        stationId: station.id,
+        stationId: sensor.station.id,
         depth,
         temperature,
         ph,
@@ -124,17 +156,23 @@ export const createReading = async (
     });
 
     await createAlerts(
-      station.id,
+      sensor.station.id,
       depth,
       ph,
       tds
     );
 
-    res.status(201).json(reading);
+    return res.status(201).json({
+      success: true,
+      message: "Reading received successfully.",
+      reading,
+      station: sensor.station.code,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Create reading error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
       message: "Internal Server Error",
     });
   }
@@ -154,11 +192,11 @@ export const getLatestReading = async (
       },
     });
 
-    res.json(reading);
+    return res.json(reading);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch latest reading",
     });
   }
@@ -179,15 +217,16 @@ export const getRecentReadings = async (
       },
     });
 
-    res.json(readings.reverse());
+    return res.json(readings.reverse());
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch readings",
     });
   }
 };
+
 export const getAlerts = async (
   req: Request,
   res: Response
@@ -208,11 +247,11 @@ export const getAlerts = async (
       },
     });
 
-    res.json(alerts);
+    return res.json(alerts);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch alerts",
     });
   }

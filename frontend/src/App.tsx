@@ -92,13 +92,13 @@ function App() {
 
         {/* Protected Users */}
         <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <Users />
-            </ProtectedRoute>
-          }
-        />
+  path="/users"
+  element={
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <Users />
+    </ProtectedRoute>
+  }
+/>
 
       </Routes>
     </BrowserRouter>
