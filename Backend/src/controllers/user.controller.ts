@@ -4,7 +4,10 @@ import prisma from "../config/prisma";
 import { UserRole } from "@prisma/client";
 import { AuthRequest } from "../middleware/auth.middleware";
 
-export const getUsers = async (req: AuthRequest, res: Response) => {
+export const getUsers = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -30,6 +33,87 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch users.",
+    });
+  }
+};
+
+export const createUser = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      role,
+    } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Name, email, password and role are required.",
+      });
+    }
+
+    if (
+      role !== UserRole.ENGINEER &&
+      role !== UserRole.VIEWER
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Admin can only create ENGINEER or VIEWER users.",
+      });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User created successfully.",
+      user,
+    });
+  } catch (error) {
+    console.error("Create user error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create user.",
     });
   }
 };

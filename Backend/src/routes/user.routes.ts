@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   getUsers,
+  createUser,
   updateUserRole,
   deleteUser,
 } from "../controllers/user.controller";
@@ -14,6 +15,8 @@ const router = Router();
 router.use(authenticate, authorize("ADMIN"));
 
 router.get("/", getUsers);
+
+router.post("/", createUser);
 
 router.patch("/:id/role", updateUserRole);
 
