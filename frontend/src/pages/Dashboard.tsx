@@ -37,9 +37,9 @@ function Dashboard() {
       setError("");
 
       const [latest, history] = await Promise.all([
-    getLatestReading(),
-    getReadingHistory(),
-      ]);
+  getLatestReading(stationId),
+  getReadingHistory(stationId),
+]);
 
       setReading(latest);
       setHistory(history);

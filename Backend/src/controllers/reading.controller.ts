@@ -226,6 +226,100 @@ export const getRecentReadings = async (
     });
   }
 };
+export const getLatestReadingByStation = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const stationCode = String(req.params.stationCode);
+
+    const station = await prisma.station.findUnique({
+      where: {
+        code: stationCode,
+      },
+    });
+
+    if (!station) {
+      return res.status(404).json({
+        success: false,
+        message: "Station not found.",
+      });
+    }
+
+    const reading =
+      await prisma.groundwaterReading.findFirst({
+        where: {
+          stationId: station.id,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          station: true,
+        },
+      });
+
+    return res.json(reading);
+  } catch (error) {
+    console.error(
+      "Get latest station reading error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch latest station reading.",
+    });
+  }
+};
+
+export const getRecentReadingsByStation = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const stationCode = String(req.params.stationCode);
+
+    const station = await prisma.station.findUnique({
+      where: {
+        code: stationCode,
+      },
+    });
+
+    if (!station) {
+      return res.status(404).json({
+        success: false,
+        message: "Station not found.",
+      });
+    }
+
+    const readings =
+      await prisma.groundwaterReading.findMany({
+        where: {
+          stationId: station.id,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 20,
+        include: {
+          station: true,
+        },
+      });
+
+    return res.json(readings.reverse());
+  } catch (error) {
+    console.error(
+      "Get station readings error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch station readings.",
+    });
+  }
+};
 
 export const getAlerts = async (
   req: Request,
