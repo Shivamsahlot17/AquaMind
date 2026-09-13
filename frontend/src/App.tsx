@@ -12,6 +12,7 @@ import Alerts from "./pages/Alerts";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
+import Sensors from "./pages/Sensors";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -45,6 +46,16 @@ function App() {
           element={
             <ProtectedRoute>
               <Stations />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Sensors */}
+        <Route
+          path="/sensors"
+          element={
+            <ProtectedRoute>
+              <Sensors />
             </ProtectedRoute>
           }
         />

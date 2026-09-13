@@ -40,42 +40,63 @@ function Layout({ children }: Props) {
           >
             <Link
               to="/dashboard/GW001"
-              style={getLinkStyle(location.pathname.startsWith("/dashboard"))}
+              style={getLinkStyle(
+                location.pathname.startsWith("/dashboard")
+              )}
             >
               🏠 Dashboard
             </Link>
 
             <Link
               to="/stations"
-              style={getLinkStyle(location.pathname === "/stations")}
+              style={getLinkStyle(
+                location.pathname === "/stations"
+              )}
             >
               📍 Stations
             </Link>
 
             <Link
+              to="/sensors"
+              style={getLinkStyle(
+                location.pathname === "/sensors"
+              )}
+            >
+              📡 Sensors
+            </Link>
+
+            <Link
               to="/alerts"
-              style={getLinkStyle(location.pathname === "/alerts")}
+              style={getLinkStyle(
+                location.pathname === "/alerts"
+              )}
             >
               🚨 Alerts
             </Link>
 
             <Link
               to="/reports"
-              style={getLinkStyle(location.pathname === "/reports")}
+              style={getLinkStyle(
+                location.pathname === "/reports"
+              )}
             >
               📄 Reports
             </Link>
 
             <Link
               to="/settings"
-              style={getLinkStyle(location.pathname === "/settings")}
+              style={getLinkStyle(
+                location.pathname === "/settings"
+              )}
             >
               ⚙️ Settings
             </Link>
 
             <Link
               to="/users"
-              style={getLinkStyle(location.pathname === "/users")}
+              style={getLinkStyle(
+                location.pathname === "/users"
+              )}
             >
               👥 Users
             </Link>
